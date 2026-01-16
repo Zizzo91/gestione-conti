@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestione Conti Correnti Personali</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://apis.google.com/js/api.js" async defer></script>
+
+    <style>
+        body { background-color: #f8f9fa; font-family: 'Inter', sans-serif; }
+        .section-card { @apply bg-white p-6 rounded-lg shadow-sm mb-6 border border-gray-100; }
+        .btn-primary { @apply bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded transition-colors; }
+        .btn-secondary { @apply bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors; }
+        .btn-success { @apply bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition-colors; }
+        .btn-outline { @apply bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow-sm transition-colors; }
+        .tab-active { @apply bg-blue-600 text-white border-blue-600; }
+        .tab-inactive { @apply bg-gray-200 text-gray-700 hover:bg-gray-300 border-transparent; }
+    </style>
+</head>
+<body class="p-4 md:p-8 max-w-7xl mx-auto">
+
+    <h1 class="text-3xl md:text-4xl font-bold text-center text-indigo-800 mb-8">
+        Gestione Conti Correnti Personali
+    </h1>
+
+    <div class="section-card bg-indigo-50">
+        <h2 class="text-xl font-bold text-indigo-700 mb-4">Inserisci Nuovi Dati Mensili</h2>
+        
+        <form id="entryForm" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="col-span-1 md:col-span-2">
+                <label class="block text-gray-700 text-sm font-bold mb-2">Mese:</label>
+                <input type="month" id="inputMonth" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-white">
+            </div>
+
+            <div id="accountInputsContainer" class="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                </div>
+
+            <div class="col-span-1 md:col-span-2 flex justify-end">
+                <button type="button" onclick="saveData()" class="btn-primary w-full md:w-auto">
+                    Salva Dati
+                </button>
+            </div>
+        </form>
+
+        <hr class="my-6 border-indigo-200">
+
+        <h3 class="text-lg font-bold text-gray-800 mb-3">Gestione Dati (JSON & Cloud)</h3>
+        <div class="flex flex-wrap gap-3">
+            <button onclick="exportJSON()" class="btn-success text-sm">Esporta Dati in JSON</button>
+            
+            <label class="btn-secondary text-sm cursor-pointer">
+                Carica Dati da JSON
+                <input type="file" id="fileInput" class="hidden" accept=".json" onchange="importJSON(this)">
+            </label>
+
+            <button onclick="handleDriveAuth('save')" class="btn-outline text-sm flex items-center gap-2">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/1/12/Google_Drive_icon_%282020%29.svg" w-4 h-4 width="16">
+                Salva su Drive
+            </button>
+            <button onclick="handleDriveAuth('load')" class="btn-outline text-sm flex items-center gap-2">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/1/12/Google_Drive_icon_%282020%29.svg" w-4 h-4 width="16">
+                Carica da Drive
+            </button>
+        </div>
+        <div id="driveStatus" class="text-xs text-gray-500 mt-2"></div>
+    </div>
+
+    <div class="section-card bg-blue-50">
+        <h2 class="text-xl font-bold text-blue-800 mb-4">Grafici Dinamici</h2>
+        
+        <div class="flex flex-wrap gap-2 mb-4">
+            <button onclick="setChartMode('single')" id="tab-single" class="px-4 py-2 rounded border tab-active">Conti Singoli</button>
+            <button onclick="setChartMode('aggregated')" id="tab-aggregated" class="px-4 py-2 rounded border tab-inactive">Gruppi Aggregati</button>
+            <button onclick="setChartMode('total')" id="tab-total" class="px-4 py-2 rounded border tab-inactive">Totale Complessivo</button>
+            <button onclick="setChartMode('variation')" id="tab-variation" class="px-4 py-2 rounded border tab-inactive">Variazione Mensile</button>
+        </div>
+
+        <div id="chartFilterContainer" class="mb-4">
+            <label class="block text-sm font-bold text-gray-700 mb-1">Filtra Grafico:</label>
+            <select id="chartFilter" onchange="updateChart()" class="shadow border rounded py-2 px-3 text-gray-700 bg-white w-full md:w-1/3">
+                <option value="all">Tutti</option>
+                </select>
+        </div>
+
+        <div class="relative h-96 w-full bg-white rounded shadow-sm p-4">
+            <canvas id="financeChart"></canvas>
+        </div>
+    </div>
+
+    <div class="section-card">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">Dati Mensili Esistenti</h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white text-sm">
+                <thead>
+                    <tr class="bg-gray-100 text-gray-600 uppercase text-xs leading-normal">
+                        <th class="py-3 px-4 text-left">Mese</th>
+                        <th id="headerPlaceholder"></th> 
+                        <th class="py-3 px-4 text-center">Azioni</th>
+                    </tr>
+                </thead>
+                <tbody id="dataTableBody" class="text-gray-600 text-sm font-light">
+                    </tbody>
+            </table>
+        </div>
+        <div id="emptyState" class="text-center py-8 text-gray-400 hidden">Nessun dato presente.</div>
+    </div>
+
+    <script>
+        // --- CONFIGURAZIONE & STATO ---
+        const ACCOUNTS = [
+            { id: 'cca_simone', label: 'Conto Corrente Arancio Simone', color: '#8b5cf6' }, // Viola
+            { id: 'ca_simone', label: 'Conto Arancio Simone', color: '#10b981' }, // Verde
+            { id: 'cca_michela', label: 'Conto Corrente Arancio Michela', color: '#f59e0b' }, // Giallo
+            { id: 'ca_michela', label: 'Conto Arancio Michela', color: '#f97316' }, // Arancio
+            { id: 'credit_agricole', label: 'Credit Agricole', color: '#3b82f6' } // Blu
+        ];
+
+        // Struttura Dati: Array di oggetti { month: "YYYY-MM", values: { accountId: centsInt, ... } }
+        let appData = [];
+        let chartInstance = null;
+        let currentChartMode = 'single'; // single, aggregated, total, variation
+
+        // --- GOOGLE DRIVE CONFIG (Da compilare dall'utente) ---
+        // Istruzioni: Crea progetto su Google Cloud Console -> Abilita Drive API -> Crea Credenziali OAuth
+        const CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID_HERE'; 
+        const API_KEY = 'YOUR_GOOGLE_API_KEY_HERE'; 
+        const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+        let tokenClient;
+        let gapiInited = false;
+        let gisInited = false;
+
+        // --- INIZIALIZZAZIONE ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initUI();
+            loadFromLocalStorage();
+            renderTable();
+            initChart();
+            
+            // Imposta il mese corrente nel picker
+            const now = new Date();
+            const monthStr = now.toISOString().slice(0, 7);
+            document.getElementById('inputMonth').value = monthStr;
+        });
+
+        function initUI() {
+            const container = document.getElementById('accountInputsContainer');
+            const filter = document.getElementById('chartFilter');
+            
+            ACCOUNTS.forEach(acc => {
+                // Genera input
+                const div = document.createElement('div');
+                div.innerHTML = `
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Saldo ${acc.label}:</label>
+                    <input type="text" id="input_${acc.id}" placeholder="0,00" onblur="formatInput(this)" 
+                           class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                `;
+                container.appendChild(div);
+
+                // Genera opzioni filtro grafico
+                const opt = document.createElement('option');
+                opt.value = acc.id;
+                opt.innerText = acc.label;
+                filter.appendChild(opt);
+            });
+
+            // Genera Intestazioni Tabella
+            const headerRow = document.querySelector('thead tr');
+            // Rimuovi placeholder
+            document.getElementById('headerPlaceholder').remove();
+            
+            // Inserisci colonne conti prima di "Azioni"
+            const actionHeader = headerRow.lastElementChild;
+            ACCOUNTS.forEach(acc => {
+                const th = document.createElement('th');
+                th.className = "py-3 px-4 text-left uppercase w-32";
+                th.innerText = acc.label.replace('Conto Corrente', 'CC').replace('Conto', 'C.'); // Abbrevia per spazio
+                headerRow.insertBefore(th, actionHeader);
+            });
+        }
+
+        // --- LOGICA CURRENCY (Core Requisito) ---
+        
+        // Input: stringa utente (es: "1.234,55 €") -> Output: Intero (centesimi)
+        function parseCurrency(str) {
+            if (!str) return 0;
+            // Rimuovi tutto tranne numeri, virgole e punti
+            let clean = str.replace(/[^\d.,-]/g, '');
+            // Gestione formati: 
+            // Se c'è una virgola, assumiamo sia il decimale italiano (1.000,00)
+            if (clean.includes(',')) {
+                clean = clean.replace(/\./g, '').replace(',', '.');
+            } else {
+                // Se c'è solo un punto, potrebbe essere 1000.50 (inglese) o 1.000 (italiano)
+                // Euristica semplice: se c'è 1 punto ed è seguito da 2 cifre finali, è inglese, altrimenti italiano
+                // Per sicurezza nell'app italiana, forziamo: rimuovi punti come migliaia
+                // A meno che l'utente non scriva esplicitamente col punto decimale (raro in IT)
+                // Qui assumiamo input italiano standard: punti=migliaia, virgola=decimali
+                clean = clean.replace(/\./g, ''); 
+            }
+            const floatVal = parseFloat(clean);
+            if (isNaN(floatVal)) return 0;
+            return Math.round(floatVal * 100);
+        }
+
+        // Input: Intero (centesimi) -> Output: Stringa formattata IT
+        function formatCurrency(cents) {
+            return new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(cents / 100);
+        }
+
+        // Formatta l'input onBlur
+        function formatInput(el) {
+            const val = parseCurrency(el.value);
+            el.value = val === 0 ? '' : new Intl.NumberFormat('it-IT', { minimumFractionDigits: 2 }).format(val / 100);
+        }
+
+        // --- GESTIONE DATI ---
+
+        function saveData() {
+            const month = document.getElementById('inputMonth').value;
+            if (!month) { alert("Seleziona un mese."); return; }
+
+            const values = {};
+            let hasData = false;
+
+            ACCOUNTS.forEach(acc => {
+                const el = document.getElementById(`input_${acc.id}`);
+                const val = parseCurrency(el.value);
+                values[acc.id] = val;
+                if (val !== 0) hasData = true;
+            });
+
+            // Cerca se esiste già
+            const existingIndex = appData.findIndex(d => d.month === month);
+            
+            const entry = { month, values };
+
+            if (existingIndex >= 0) {
+                if(!confirm(`Esistono già dati per ${month}. Vuoi sovrascriverli?`)) return;
+                appData[existingIndex] = entry;
+            } else {
+                appData.push(entry);
+            }
+
+            // Ordina decrescente
+            appData.sort((a, b) => b.month.localeCompare(a.month));
+
+            persistData();
+            renderTable();
+            updateChart();
+            
+            // Reset form parziale (opzionale) o feedback
+            // document.getElementById('entryForm').reset(); // Spesso fastidioso se si inseriscono dati sequenziali
+            alert("Dati salvati con successo!");
+        }
+
+        function loadFromLocalStorage() {
+            const stored = localStorage.getItem('financeApp_data');
+            if (stored) {
+                appData = JSON.parse(stored);
+            }
+        }
+
+        function persistData() {
+            localStorage.setItem('financeApp_data', JSON.stringify(appData));
+        }
+
+        function deleteEntry(month) {
+            if(confirm(`Eliminare i dati di ${month}?`)) {
+                appData = appData.filter(d => d.month !== month);
+                persistData();
+                renderTable();
+                updateChart();
+            }
+        }
+
+        function editEntry(month) {
+            const entry = appData.find(d => d.month === month);
+            if (!entry) return;
+
+            document.getElementById('inputMonth').value = entry.month;
+            ACCOUNTS.forEach(acc => {
+                const val = entry.values[acc.id] || 0;
+                const el = document.getElementById(`input_${acc.id}`);
+                el.value = val === 0 ? '' : new Intl.NumberFormat('it-IT', { minimumFractionDigits: 2 }).format(val / 100);
+            });
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // --- TABELLA ---
+        function renderTable() {
+            const tbody = document.getElementById('dataTableBody');
+            tbody.innerHTML = '';
+            
+            if (appData.length === 0) {
+                document.getElementById('emptyState').classList.remove('hidden');
+                return;
+            }
+            document.getElementById('emptyState').classList.add('hidden');
+
+            appData.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.className = "border-b border-gray-200 hover:bg-gray-50";
+
+                let html = `<td class="py-3 px-4 font-medium whitespace-nowrap">${row.month}</td>`;
+                
+                ACCOUNTS.forEach(acc => {
+                    const val = row.values[acc.id] || 0;
+                    html += `<td class="py-3 px-4">${formatCurrency(val)}</td>`;
+                });
+
+                html += `
+                    <td class="py-3 px-4 text-center whitespace-nowrap">
+                        <button onclick="editEntry('${row.month}')" class="text-indigo-600 hover:text-indigo-900 mr-2 font-bold">Modifica</button>
+                        <button onclick="deleteEntry('${row.month}')" class="text-red-500 hover:text-red-700 font-bold">Elimina</button>
+                    </td>
+                `;
+                tr.innerHTML = html;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // --- GRAFICI (Chart.js) ---
+        function initChart() {
+            const ctx = document.getElementById('financeChart').getContext('2d');
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: { labels: [], datasets: [] },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: {
+                        y: { 
+                            beginAtZero: true,
+                            ticks: { callback: (val) => new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', maximumSignificantDigits: 3 }).format(val) }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) label += ': ';
+                                    if (context.parsed.y !== null) {
+                                        label += new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(context.parsed.y);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            updateChart();
+        }
+
+        function setChartMode(mode) {
+            currentChartMode = mode;
+            // Aggiorna UI Tab
+            ['single', 'aggregated', 'total', 'variation'].forEach(m => {
+                const btn = document.getElementById(`tab-${m}`);
+                if (m === mode) {
+                    btn.classList.remove('tab-inactive');
+                    btn.classList.add('tab-active');
+                } else {
+                    btn.classList.add('tab-inactive');
+                    btn.classList.remove('tab-active');
+                }
+            });
+
+            // Mostra/Nascondi Filtro
+            const filterContainer = document.getElementById('chartFilterContainer');
+            if (mode === 'single') filterContainer.style.display = 'block';
+            else filterContainer.style.display = 'none';
+
+            updateChart();
+        }
+
+        function updateChart() {
+            // Ordina cronologico per il grafico (ascendente)
+            const sortedData = [...appData].sort((a, b) => a.month.localeCompare(b.month));
+            const labels = sortedData.map(d => d.month);
+            let datasets = [];
+
+            if (currentChartMode === 'single') {
+                const filterId = document.getElementById('chartFilter').value;
+                
+                ACCOUNTS.forEach(acc => {
+                    if (filterId === 'all' || filterId === acc.id) {
+                        datasets.push({
+                            label: acc.label,
+                            data: sortedData.map(d => (d.values[acc.id] || 0) / 100),
+                            borderColor: acc.color,
+                            backgroundColor: acc.color,
+                            tension: 0.3,
+                            fill: false
+                        });
+                    }
+                });
+
+            } else if (currentChartMode === 'aggregated') {
+                // Esempio logico: Raggruppa "Simone" e "Michela" e "Banca"
+                // Definiamo gruppi custom basati sui nomi
+                const groups = [
+                    { name: 'Simone Totale', keyword: 'Simone', color: '#8b5cf6' },
+                    { name: 'Michela Totale', keyword: 'Michela', color: '#f97316' },
+                    { name: 'Altri', keyword: 'Credit', color: '#3b82f6' }
+                ];
+
+                groups.forEach(group => {
+                    const data = sortedData.map(d => {
+                        let sum = 0;
+                        ACCOUNTS.forEach(acc => {
+                            if ((acc.label.includes(group.keyword))) {
+                                sum += (d.values[acc.id] || 0);
+                            }
+                        });
+                        return sum / 100;
+                    });
+
+                    datasets.push({
+                        label: group.name,
+                        data: data,
+                        borderColor: group.color,
+                        tension: 0.3
+                    });
+                });
+
+            } else if (currentChartMode === 'total') {
+                const data = sortedData.map(d => {
+                    let sum = 0;
+                    ACCOUNTS.forEach(acc => sum += (d.values[acc.id] || 0));
+                    return sum / 100;
+                });
+                datasets.push({
+                    label: 'Patrimonio Totale',
+                    data: data,
+                    borderColor: '#1e3a8a',
+                    backgroundColor: 'rgba(30, 58, 138, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                });
+
+            } else if (currentChartMode === 'variation') {
+                // Calcola delta rispetto al mese precedente (totale)
+                const data = sortedData.map((d, i) => {
+                    if (i === 0) return 0;
+                    let currSum = 0;
+                    let prevSum = 0;
+                    ACCOUNTS.forEach(acc => currSum += (d.values[acc.id] || 0));
+                    ACCOUNTS.forEach(acc => prevSum += (sortedData[i-1].values[acc.id] || 0));
+                    return (currSum - prevSum) / 100;
+                });
+
+                datasets.push({
+                    type: 'bar',
+                    label: 'Variazione Mensile (€)',
+                    data: data,
+                    backgroundColor: data.map(v => v >= 0 ? '#10b981' : '#ef4444')
+                });
+            }
+
+            chartInstance.data.labels = labels;
+            chartInstance.data.datasets = datasets;
+            chartInstance.update();
+        }
+
+        // --- IMPORT / EXPORT JSON ---
+        function exportJSON() {
+            const dataStr = JSON.stringify(appData, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `finance_backup_${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importJSON(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const json = JSON.parse(e.target.result);
+                    // Validazione base
+                    if (!Array.isArray(json)) throw new Error("Formato non valido");
+                    
+                    if(confirm("L'importazione sovrascriverà i dati attuali. Continuare?")) {
+                        appData = json;
+                        persistData();
+                        renderTable();
+                        updateChart();
+                        alert("Importazione riuscita!");
+                    }
+                } catch (err) {
+                    alert("Errore nel file JSON: " + err.message);
+                }
+                input.value = ''; // Reset
+            };
+            reader.readAsText(file);
+        }
+
+        // --- GOOGLE DRIVE INTEGRATION (Scheletro Funzionante) ---
+        // Nota: Richiede configurazione Google Cloud Console con le giuste origini.
+        
+        function handleDriveAuth(action) {
+            if (!gapiInited || !gisInited) {
+                alert("Servizi Google non inizializzati. Verifica API Key/Client ID nel codice.");
+                return;
+            }
+            
+            tokenClient.callback = async (resp) => {
+                if (resp.error) throw resp;
+                if (action === 'save') await saveToDrive();
+                if (action === 'load') await loadFromDrive();
+            };
+
+            if (gapi.client.getToken() === null) {
+                tokenClient.requestAccessToken({prompt: 'consent'});
+            } else {
+                tokenClient.requestAccessToken({prompt: ''});
+            }
+        }
+
+        async function saveToDrive() {
+            const statusDiv = document.getElementById('driveStatus');
+            statusDiv.innerText = "Salvataggio su Drive in corso...";
+            
+            const fileContent = JSON.stringify(appData, null, 2);
+            const file = new Blob([fileContent], {type: 'application/json'});
+            const metadata = {
+                'name': 'finance_backup.json',
+                'mimeType': 'application/json',
+                // Opzionale: 'parents': ['ID_CARTELLA'] 
+            };
+
+            const accessToken = gapi.client.getToken().access_token;
+            const form = new FormData();
+            form.append('metadata', new Blob([JSON.stringify(metadata)], {type: 'application/json'}));
+            form.append('file', file);
+
+            try {
+                // Cerca se esiste già per aggiornarlo (logica semplificata: crea sempre nuovo o cerca per nome)
+                // Qui creiamo un nuovo file per semplicità dello snippet
+                await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+                    method: 'POST',
+                    headers: new Headers({ 'Authorization': 'Bearer ' + accessToken }),
+                    body: form
+                });
+                statusDiv.innerText = "Salvato su Google Drive con successo!";
+                setTimeout(() => statusDiv.innerText = "", 3000);
+            } catch (error) {
+                console.error(error);
+                statusDiv.innerText = "Errore salvataggio Drive.";
+            }
+        }
+
+        async function loadFromDrive() {
+            const statusDiv = document.getElementById('driveStatus');
+            statusDiv.innerText = "Apertura selettore Drive...";
+
+            // Usa Google Picker API (sarebbe l'ideale) o lista file recente
+            // Per semplicità qui elenchiamo i file chiamati 'finance_backup.json'
+            try {
+                const response = await gapi.client.drive.files.list({
+                    'pageSize': 10,
+                    'fields': "files(id, name)",
+                    'q': "name = 'finance_backup.json' and trashed = false"
+                });
+                const files = response.result.files;
+                
+                if (files && files.length > 0) {
+                    // Prende il più recente (o fai scegliere all'utente in una modale vera)
+                    const fileId = files[0].id; 
+                    const fileRes = await gapi.client.drive.files.get({
+                        fileId: fileId,
+                        alt: 'media'
+                    });
+                    
+                    if(confirm(`Trovato backup "${files[0].name}". Importare?`)) {
+                        appData = fileRes.result; // GAPI parsa JSON automaticamente se alt=media e type json
+                        if(typeof appData === 'string') appData = JSON.parse(appData);
+                        
+                        persistData();
+                        renderTable();
+                        updateChart();
+                        statusDiv.innerText = "Dati importati da Drive!";
+                    }
+                } else {
+                    alert("Nessun file 'finance_backup.json' trovato.");
+                    statusDiv.innerText = "";
+                }
+            } catch (err) {
+                console.error(err);
+                statusDiv.innerText = "Errore caricamento Drive.";
+            }
+        }
+
+        // --- INIT GOOGLE LIB ---
+        // Caricato async dalle librerie nello head
+        window.onload = function() {
+            gapiLoaded();
+            gisLoaded();
+        }
+
+        function gapiLoaded() {
+            gapi.load('client', async () => {
+                await gapi.client.init({
+                    apiKey: API_KEY,
+                    discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
+                });
+                gapiInited = true;
+            });
+        }
+
+        function gisLoaded() {
+            tokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: CLIENT_ID,
+                scope: SCOPES,
+                callback: '', // Definito al click
+            });
+            gisInited = true;
+        }
+
+    </script>
+</body>
+</html>
