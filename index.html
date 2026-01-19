@@ -10,8 +10,8 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Google APIs -->
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <script src="https://apis.google.com/js/api.js" async defer></script>
+  <script src="https://accounts.google.com/gsi/client" async defer onload="gisLoaded()"></script>
+  <script src="https://apis.google.com/js/api.js" async defer onload="gapiLoaded()"></script>
 
   <style>
     body {
