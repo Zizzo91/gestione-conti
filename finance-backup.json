@@ -1,0 +1,262 @@
+[
+  {
+    "month": "2026-01",
+    "values": {
+      "ccasimone": 314292,
+      "casimone": 490503,
+      "ccamichela": 426848,
+      "camichela": 450000,
+      "creditagricole": 288047
+    }
+  },
+  {
+    "month": "2025-12",
+    "values": {
+      "ccasimone": 299098,
+      "casimone": 491483,
+      "ccamichela": 604868,
+      "camichela": 239177,
+      "creditagricole": 117764
+    }
+  },
+  {
+    "month": "2025-11",
+    "values": {
+      "ccasimone": 300715,
+      "casimone": 487371,
+      "ccamichela": 298611,
+      "camichela": 235364,
+      "creditagricole": 188417
+    }
+  },
+  {
+    "month": "2025-10",
+    "values": {
+      "ccasimone": 211911,
+      "casimone": 487371,
+      "ccamichela": 211294,
+      "camichela": 185364,
+      "creditagricole": 151065
+    }
+  },
+  {
+    "month": "2025-09",
+    "values": {
+      "ccasimone": 255490,
+      "casimone": 487371,
+      "ccamichela": 337692,
+      "camichela": 185364,
+      "creditagricole": 27853
+    }
+  },
+  {
+    "month": "2025-08",
+    "values": {
+      "ccasimone": 311133,
+      "casimone": 487371,
+      "ccamichela": 350731,
+      "camichela": 185364,
+      "creditagricole": 156246
+    }
+  },
+  {
+    "month": "2025-07",
+    "values": {
+      "ccasimone": 358569,
+      "casimone": 487371,
+      "ccamichela": 217176,
+      "camichela": 185364,
+      "creditagricole": 107967
+    }
+  },
+  {
+    "month": "2025-06",
+    "values": {
+      "ccasimone": 129515,
+      "casimone": 487371,
+      "ccamichela": 83043,
+      "camichela": 185364,
+      "creditagricole": 202680
+    }
+  },
+  {
+    "month": "2025-05",
+    "values": {
+      "ccasimone": 212437,
+      "casimone": 487371,
+      "ccamichela": 5237,
+      "camichela": 195364,
+      "creditagricole": 135539
+    }
+  },
+  {
+    "month": "2025-04",
+    "values": {
+      "ccasimone": 211976,
+      "casimone": 487371,
+      "ccamichela": 60667,
+      "camichela": 235364,
+      "creditagricole": 247119
+    }
+  },
+  {
+    "month": "2025-03",
+    "values": {
+      "ccasimone": 27371,
+      "casimone": 285115,
+      "ccamichela": 250177,
+      "camichela": 484364,
+      "creditagricole": 328942
+    }
+  },
+  {
+    "month": "2025-02",
+    "values": {
+      "ccasimone": 437371,
+      "casimone": 505052,
+      "ccamichela": 345143,
+      "camichela": 484364,
+      "creditagricole": 330762
+    }
+  },
+  {
+    "month": "2025-01",
+    "values": {
+      "ccasimone": 427371,
+      "casimone": 505815,
+      "ccamichela": 360128,
+      "camichela": 494364,
+      "creditagricole": 303895
+    }
+  },
+  {
+    "month": "2024-12",
+    "values": {
+      "ccasimone": 428231,
+      "casimone": 492875,
+      "ccamichela": 382366,
+      "camichela": 485334,
+      "creditagricole": 126114
+    }
+  },
+  {
+    "month": "2024-11",
+    "values": {
+      "ccasimone": 467468,
+      "casimone": 422059,
+      "ccamichela": 83847,
+      "camichela": 480398,
+      "creditagricole": 163969
+    }
+  },
+  {
+    "month": "2024-10",
+    "values": {
+      "ccasimone": 409130,
+      "casimone": 422059,
+      "ccamichela": 51511,
+      "camichela": 480398,
+      "creditagricole": 259175
+    }
+  },
+  {
+    "month": "2024-09",
+    "values": {
+      "ccasimone": 664189,
+      "casimone": 922059,
+      "ccamichela": 126511,
+      "camichela": 480398,
+      "creditagricole": 474937
+    }
+  },
+  {
+    "month": "2024-08",
+    "values": {
+      "ccasimone": 659942,
+      "casimone": 922059,
+      "ccamichela": 168748,
+      "camichela": 480398,
+      "creditagricole": 384753
+    }
+  },
+  {
+    "month": "2024-07",
+    "values": {
+      "ccasimone": 834932,
+      "casimone": 922059,
+      "ccamichela": 200429,
+      "camichela": 480398,
+      "creditagricole": 257882
+    }
+  },
+  {
+    "month": "2024-06",
+    "values": {
+      "ccasimone": 607651,
+      "casimone": 922059,
+      "ccamichela": 132319,
+      "camichela": 480398,
+      "creditagricole": 293704
+    }
+  },
+  {
+    "month": "2024-05",
+    "values": {
+      "ccasimone": 496919,
+      "casimone": 912059,
+      "ccamichela": 195476,
+      "camichela": 480000,
+      "creditagricole": 164327
+    }
+  },
+  {
+    "month": "2024-04",
+    "values": {
+      "ccasimone": 922915,
+      "casimone": 912059,
+      "ccamichela": 234738,
+      "camichela": 398,
+      "creditagricole": 181906
+    }
+  },
+  {
+    "month": "2024-03",
+    "values": {
+      "ccasimone": 878520,
+      "casimone": 912059,
+      "ccamichela": 80413,
+      "camichela": 398,
+      "creditagricole": 454035
+    }
+  },
+  {
+    "month": "2024-02",
+    "values": {
+      "ccasimone": 559172,
+      "casimone": 912059,
+      "ccamichela": 124037,
+      "camichela": 398,
+      "creditagricole": 677702
+    }
+  },
+  {
+    "month": "2024-01",
+    "values": {
+      "ccasimone": 2431372,
+      "casimone": 912059,
+      "ccamichela": 196211,
+      "camichela": 398,
+      "creditagricole": 1820608
+    }
+  },
+  {
+    "month": "2023-12",
+    "values": {
+      "ccasimone": 2268077,
+      "casimone": 910000,
+      "ccamichela": 242385,
+      "camichela": 398,
+      "creditagricole": 1868999
+    }
+  }
+]
